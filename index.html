@@ -490,10 +490,11 @@
             return {
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                radius: Math.random() * 3 + 1,
-                color: `rgba(56, 189, 248, ${Math.random() * 0.7 + 0.3})`,
-                vx: (Math.random() * 1 - 0.5) * 0.2,
-                vy: (Math.random() * 1 - 0.5) * 0.2,
+                radius: Math.random() * 2 + 1,
+                color: `rgba(56, 189, 248, ${Math.random() * 0.5 + 0.3})`,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                history: [],
             };
         }
 
@@ -503,10 +504,14 @@
             ctx.fillStyle = particle.color;
             ctx.fill();
 
+            // Draw tracer
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
-            ctx.lineTo(particle.x + particle.vx * 5, particle.y + particle.vy * 5);
-            ctx.strokeStyle = particle.color;
+            for (let i = 0; i < particle.history.length; i++) {
+                const point = particle.history[i];
+                ctx.lineTo(point.x, point.y);
+            }
+            ctx.strokeStyle = `rgba(56, 189, 248, ${0.1 - (0.1 / particle.history.length) * particle.history.length})`;
             ctx.stroke();
         }
 
@@ -514,17 +519,29 @@
             particle.x += particle.vx;
             particle.y += particle.vy;
 
+            // Add current position to history
+            particle.history.unshift({x: particle.x, y: particle.y});
+            if (particle.history.length > 5) {
+                particle.history.pop();
+            }
+
+            // Bounce off edges
             if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
             if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+
+            // Randomly change direction occasionally
+            if (Math.random() < 0.01) {
+                particle.vx = (Math.random() - 0.5) * 2;
+                particle.vy = (Math.random() - 0.5) * 2;
+            }
         }
 
         function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(10, 15, 30, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
             particles.forEach((particle) => {
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
-                if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+                updateParticle(particle);
                 drawParticle(particle);
             });
             requestAnimationFrame(animateParticles);
@@ -537,7 +554,7 @@
 
         function initParticles() {
             resizeCanvas();
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 50; i++) {
                 particles.push(createParticle());
             }
             animateParticles();
@@ -545,6 +562,7 @@
 
         window.addEventListener('resize', resizeCanvas);
         initParticles();
+
         updateTimerDisplay();
 
         const root = document.documentElement;
