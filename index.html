@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pomoflow: A Pomodoro Timer for Flow States</title>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
-            rel="stylesheet">
-        <style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomoflow: A Pomodoro Timer for Flow States</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
         :root {
             --bg-color-1: #0a0f1e;
             --bg-color-2: #101835;
@@ -34,9 +32,17 @@
         }
 
         @keyframes pulseGradient {
-            0% { background-position: 0% 0%; }
-            50% { background-position: 100% 100%; }
-            100% { background-position: 0% 0%; }
+            0% {
+                background-position: 0% 0%;
+            }
+
+            50% {
+                background-position: 100% 100%;
+            }
+
+            100% {
+                background-position: 0% 0%;
+            }
         }
 
         @keyframes boxBreathe {
@@ -76,7 +82,8 @@
             height: 0;
             border-top: 10px solid transparent;
             border-bottom: 10px solid transparent;
-            border-left: 15px solid white; /* White play icon */
+            border-left: 15px solid white;
+            /* White play icon */
             margin-left: 3px;
         }
 
@@ -84,13 +91,16 @@
             width: 5px;
             height: 20px;
             border: none;
-            background-color: rgba(14, 165, 233, 0.8);
-            box-shadow: 8px 0 0 rgba(14, 165, 233, 0.8);
+            background-color: white;
+            /* White pause icon */
+            box-shadow: 8px 0 0 white;
+            /* White pause icon */
             margin-left: 0;
         }
 
         #playPauseBtn:hover {
-            background-color: rgba(14, 165, 233, 0.3);
+            background-color: rgba(10, 25, 47, 0.9);
+            /* Slightly lighter on hover */
         }
 
         #controls {
@@ -145,11 +155,15 @@
         }
 
         @keyframes boxBreathe {
-            0%, 100% {
+
+            0%,
+            100% {
                 transform: scale(1);
                 box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7);
             }
-            21%, 58% {
+
+            21%,
+            58% {
                 transform: scale(1.2);
                 box-shadow: 0 0 30px 10px rgba(56, 189, 248, 0.7);
             }
@@ -289,28 +303,28 @@
             pointer-events: none;
         }
     </style>
-    </head>
+</head>
 
-    <body>
-        <canvas id="particleCanvas"></canvas>
-        <div id="app">
-            <h1>Pomoflow</h1>
-            <h2>A Pomodoro Timer for Flow States</h2>
-            <div id="timerCircle">
-                <div id="timerProgress"></div>
-                <span id="timeDisplay">24:47</span>
-                <button id="playPauseBtn"></button>
-            </div>
-            <div id="controls">
-                <button id="taskBtn">Tasks</button>
-            </div>
-            <div id="taskList">
-                <ul id="tasks"></ul>
-                <input type="text" id="newTask" placeholder="Add a new task...">
-            </div>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div id="app">
+        <h1>Pomoflow</h1>
+        <h2>A Pomodoro Timer for Flow States</h2>
+        <div id="timerCircle">
+            <div id="timerProgress"></div>
+            <span id="timeDisplay"></span>
+            <button id="playPauseBtn"></button>
         </div>
+        <div id="controls">
+            <button id="taskBtn">Tasks</button>
+        </div>
+        <div id="taskList">
+            <ul id="tasks"></ul>
+            <input type="text" id="newTask" placeholder="Add a new task...">
+        </div>
+    </div>
 
-        <script>
+    <script>
         const timerCircle = document.getElementById('timerCircle');
         const timeDisplay = document.getElementById('timeDisplay');
         const timerProgress = document.getElementById('timerProgress');
@@ -499,9 +513,9 @@
 
         const root = document.documentElement;
         const colors = [
-            { bg1: '#0a0a1e', bg2: '#0f1535' },
-            { bg1: '#0f0f2a', bg2: '#1a1a3b' },
-            { bg1: '#1a1a2e', bg2: '#25253e' },
+            {bg1: '#0a0a1e', bg2: '#0f1535'},
+            {bg1: '#0f0f2a', bg2: '#1a1a3b'},
+            {bg1: '#1a1a2e', bg2: '#25253e'},
         ];
 
         function changeTheme() {
@@ -513,6 +527,6 @@
         setInterval(changeTheme, 30000);
 
     </script>
-    </body>
+</body>
 
 </html>
