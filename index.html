@@ -494,35 +494,44 @@
                 color: `rgba(56, 189, 248, ${Math.random() * 0.5 + 0.3})`,
                 vx: (Math.random() - 0.5) * 2,
                 vy: (Math.random() - 0.5) * 2,
-                history: [],
+                trail: [],
             };
         }
 
         function drawParticle(particle) {
+            // Draw particle
             ctx.beginPath();
             ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
             ctx.fillStyle = particle.color;
             ctx.fill();
 
-            // Draw tracer
+            // Draw trail
             ctx.beginPath();
-            ctx.moveTo(particle.x, particle.y);
-            for (let i = 0; i < particle.history.length; i++) {
-                const point = particle.history[i];
+            for (let i = 0; i < particle.trail.length; i++) {
+                const point = particle.trail[i];
+                const distance = Math.sqrt(Math.pow(particle.x - point.x, 2) + Math.pow(particle.y - point.y, 2));
+                const maxDistance = 30; // Maximum distance for trail visibility
+                const opacity = Math.max(0, 1 - (distance / maxDistance));
+
+                ctx.strokeStyle = `rgba(56, 189, 248, ${opacity * 0.1})`;
+                ctx.lineWidth = particle.radius * 0.5 * opacity;
+
+                if (i === 0) {
+                    ctx.moveTo(particle.x, particle.y);
+                }
                 ctx.lineTo(point.x, point.y);
+                ctx.stroke();
             }
-            ctx.strokeStyle = `rgba(56, 189, 248, ${0.1 - (0.1 / particle.history.length) * particle.history.length})`;
-            ctx.stroke();
         }
 
         function updateParticle(particle) {
             particle.x += particle.vx;
             particle.y += particle.vy;
 
-            // Add current position to history
-            particle.history.unshift({x: particle.x, y: particle.y});
-            if (particle.history.length > 5) {
-                particle.history.pop();
+            // Update trail
+            particle.trail.unshift({x: particle.x, y: particle.y});
+            if (particle.trail.length > 5) {
+                particle.trail.pop();
             }
 
             // Bounce off edges
@@ -537,7 +546,7 @@
         }
 
         function animateParticles() {
-            ctx.fillStyle = 'rgba(10, 15, 30, 0.1)';
+            ctx.fillStyle = 'rgba(10, 15, 30, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             particles.forEach((particle) => {
