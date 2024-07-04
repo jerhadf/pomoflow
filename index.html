@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pomoflow: A Pomodoro Timer for Flow States</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+            rel="stylesheet">
+        <style>
+        :root {
+            --bg-color-1: #0a0f1e;
+            --bg-color-2: #101835;
+            --text-color: #e2e8f0;
+            --accent-color: #38bdf8;
+            --secondary-color: #818cf8;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        body {
+            background: radial-gradient(circle at center, var(--bg-color-1), var(--bg-color-2));
+            background-size: 200% 200%;
+            animation: pulseGradient 15s ease infinite;
+        }
+
+        @keyframes pulseGradient {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        @keyframes boxBreathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            50% { transform: scale(1.2); box-shadow: 0 0 30px 10px rgba(56, 189, 248, 0.7); }
+        }
+
+        #playPauseBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            color: var(--accent-color);
+            opacity: 0.7;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        #playPauseBtn:hover {
+            opacity: 1;
+        }
+
+        #controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        #app {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 300;
+            margin-top: 0;
+            margin-bottom: 2rem;
+            color: rgba(226, 232, 240, 0.6);
+        }
+
+        #timerCircle {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: 300;
+            position: relative;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            overflow: hidden;
+        }
+
+        #timerCircle.breathing {
+            animation: boxBreathe 16s infinite ease-in-out;
+        }
+
+        @keyframes boxBreathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            25% { transform: scale(1.1); box-shadow: 0 0 30px 10px rgba(56, 189, 248, 0); }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px 10px rgba(56, 189, 248, 0.7); }
+            75% { transform: scale(1); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+
+        #timerProgress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-color) 0deg, transparent 0deg);
+            opacity: 0.7;
+            transition: all 0.5s linear;
+        }
+
+        #controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 400;
+            cursor: pointer;
+            background-color: transparent;
+            color: var(--text-color);
+            border: 2px solid var(--accent-color);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            text-transform: lowercase;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-color-1);
+        }
+
+        button.active {
+            background-color: var(--accent-color);
+            color: var(--bg-color-1);
+        }
+
+        #taskList {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            display: none;
+        }
+
+        #tasks {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #tasks li {
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.5s ease;
+        }
+
+        #tasks li.completed {
+            animation: dissolveTask 1s forwards;
+        }
+
+        @keyframes dissolveTask {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .checkmark {
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            opacity: 0.7;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .checkmark:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        #newTask {
+            width: calc(100% - 1.5rem);
+            padding: 0.75rem;
+            margin-top: 1rem;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        #newTask::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .task-particles {
+            position: absolute;
+            pointer-events: none;
+        }
+    </style>
+        </style>
+    </head>
+    <body>
+        <canvas id="particleCanvas"></canvas>
+        <div id="app">
+            <h1>pomoflow</h1>
+            <h2>a pomodoro timer for flow states</h2>
+            <div id="timerCircle">
+                <div id="timerProgress"></div>
+                <span id="timeDisplay">25:00</span>
+                <span id="playPauseBtn">▶️</span>
+            </div>
+            <div id="controls">
+                <button id="breatheBtn">breathe</button>
+                <button id="taskBtn">tasks</button>
+            </div>
+            <div id="taskList">
+                <ul id="tasks"></ul>
+                <input type="text" id="newTask" placeholder="add a new task...">
+            </div>
+        </div>
+
+        <script>
+        const timerCircle = document.getElementById('timerCircle');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const timerProgress = document.getElementById('timerProgress');
+        const startBtn = document.getElementById('startBtn');
+        const breatheBtn = document.getElementById('breatheBtn');
+        const taskBtn = document.getElementById('taskBtn');
+        const taskList = document.getElementById('taskList');
+        const tasks = document.getElementById('tasks');
+        const newTask = document.getElementById('newTask');
+
+        let timer;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let isBreathing = false;
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            timeDisplay.textContent = formatTime(timeLeft);
+            const progress = 1 - (timeLeft / (25 * 60));
+            const degrees = progress * 360;
+            timerProgress.style.background = `conic-gradient(var(--accent-color) ${degrees}deg, transparent ${degrees}deg)`;
+
+            // Shrink the timer circle as time runs out
+            const scale = 1 - (progress * 0.2); // Shrink up to 20%
+            timerCircle.style.transform = `scale(${scale})`;
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                startBtn.textContent = 'pause';
+                startBtn.classList.add('active');
+                timer = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft === 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        startBtn.textContent = 'start';
+                        startBtn.classList.remove('active');
+                        alert('Pomodoro session completed!');
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timer);
+                isRunning = false;
+                startBtn.textContent = 'resume';
+                startBtn.classList.remove('active');
+            }
+        }
+
+        function toggleBreathe() {
+            isBreathing = !isBreathing;
+            timerCircle.classList.toggle('breathing');
+            breatheBtn.classList.toggle('active');
+        }
+
+        function toggleTimer() {
+            if (!isRunning) {
+                isRunning = true;
+                playPauseBtn.textContent = '⏸️';
+                timer = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft === 0) {
+                        clearInterval(timer);
+                        isRunning = false;
+                        playPauseBtn.textContent = '▶️';
+                        alert('Pomodoro session completed!');
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timer);
+                isRunning = false;
+                playPauseBtn.textContent = '▶️';
+            }
+        }
+
+        function toggleTasks() {
+            taskList.style.display = taskList.style.display === 'none' ? 'block' : 'none';
+            taskBtn.classList.toggle('active');
+            taskBtn.textContent = taskList.style.display === 'none' ? 'tasks' : 'hide tasks';
+        }
+
+        function createParticles(x, y) {
+            const particleContainer = document.createElement('div');
+            particleContainer.classList.add('task-particles');
+            particleContainer.style.left = `${x}px`;
+            particleContainer.style.top = `${y}px`;
+
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = '4px';
+                particle.style.height = '4px';
+                particle.style.backgroundColor = 'var(--accent-color)';
+                particle.style.borderRadius = '50%';
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 50 + 50;
+                const animationDuration = Math.random() * 0.5 + 0.5;
+                particle.animate([
+                    { transform: 'translate(0, 0)', opacity: 1 },
+                    { transform: `translate(${Math.cos(angle) * speed}px, ${Math.sin(angle) * speed}px)`, opacity: 0 }
+                ], {
+                    duration: animationDuration * 1000,
+                    easing: 'ease-out'
+                });
+                particleContainer.appendChild(particle);
+            }
+
+            document.body.appendChild(particleContainer);
+            setTimeout(() => particleContainer.remove(), 1000);
+        }
+
+        function addTask(taskText) {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${taskText}</span>
+                <span class="checkmark">✓</span>
+            `;
+            li.classList.add('fadeInUp');
+            li.querySelector('.checkmark').addEventListener('click', (e) => {
+                const rect = li.getBoundingClientRect();
+                createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                li.classList.add('completed');
+                setTimeout(() => {
+                    li.remove();
+                }, 1000);
+            });
+            tasks.appendChild(li);
+        }
+
+        // event listeners
+        newTask.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && newTask.value.trim() !== '') {
+                addTask(newTask.value.trim());
+                newTask.value = '';
+            }
+        });
+
+        playPauseBtn.addEventListener('click', toggleTimer);
+        breatheBtn.addEventListener('click', toggleBreathe);
+        taskBtn.addEventListener('click', toggleTasks);
+        timerCircle.addEventListener('click', toggleBreathe);
+
+        // Background particle animation
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+
+        function createParticle() {
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 3 + 1,
+                color: `rgba(56, 189, 248, ${Math.random() * 0.7 + 0.3})`,
+                vx: Math.random() * 1 - 0.5,
+                vy: Math.random() * 1 - 0.5,
+            };
+        }
+
+        function drawParticle(particle) {
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+            ctx.fillStyle = particle.color;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(particle.x, particle.y);
+            ctx.lineTo(particle.x + particle.vx * 5, particle.y + particle.vy * 5);
+            ctx.strokeStyle = particle.color;
+            ctx.stroke();
+        }
+
+        function updateParticle(particle) {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+
+            if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+            if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((particle) => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+                if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
+                drawParticle(particle);
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function initParticles() {
+            resizeCanvas();
+            for (let i = 0; i < 100; i++) {
+                particles.push(createParticle());
+            }
+            animateParticles();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        initParticles();
+        updateTimerDisplay();
+
+        const root = document.documentElement;
+        const colors = [
+            { bg1: '#1a1a2e', bg2: '#16213e' },
+            { bg1: '#0f172a', bg2: '#1e293b' },
+            { bg1: '#1e1e2e', bg2: '#2a2a3e' },
+        ];
+        function changeTheme() {
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            root.style.setProperty('--bg-color-1', color.bg1);
+            root.style.setProperty('--bg-color-2', color.bg2);
+        }
+        setInterval(changeTheme, 30000);
+
+    </script>
+    </body>
+</html>
